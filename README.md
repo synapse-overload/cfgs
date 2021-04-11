@@ -1,4 +1,4 @@
-1. Don't forget to run :PlugInstall after you've copied everything in your homedir.
+1. Don't forget to run `:PlugInstall` after you've copied everything in your homedir.
 2. Install ccls on your system, it's better than clangd because it allows multiple subprojects to have their own `compile_commands.json` or `.ccls` file
 3. For your own sanity when using Autotools projects or ones that just use make also install `bear` in order to 
 get a compile_commands.json file. Alternatively use `compiledb` and look on the project website for ways of dry-running and gettin a build log from it.

@@ -5,3 +5,4 @@ get a compile_commands.json file. Alternatively use `compiledb` and look on the 
 4. [IF USING YCM] For `YouCompleteMe` you need python3-dev build-essential and cmake3 on ubuntu. Find equivalent for your distro.
    a. You need to run the following command in the YouCompleteMe folder install.py --clangd-completer.
 6. [IF USIGN CCLS] Install `npm` and `yarn`. (See project git page tor installation of dependencies).
+7. If you're using linux try Cascadia Code Light Font, hope you like it

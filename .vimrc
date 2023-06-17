@@ -13,9 +13,10 @@ call plug#begin()
 	Plug 'ddrscott/vim-side-search'
 	Plug 'will133/vim-dirdiff'
 	Plug 'rhysd/vim-clang-format'
-    Plug 'sainnhe/sonokai'
+  Plug 'sainnhe/sonokai'
 	Plug 'bfrg/vim-cpp-modern'
 	Plug 'airblade/vim-rooter'
+  Plug 'NLKNguyen/papercolor-theme'
 call plug#end()
 set noea
 set number

@@ -4,7 +4,7 @@
 get a compile_commands.json file. Alternatively use `compiledb` and look on the project website for ways of dry-running and gettin a build log from it.
 4. [IF USING YCM] For `YouCompleteMe` you need python3-dev build-essential and cmake3 on ubuntu. Find equivalent for your distro. On Fedora you need 
    clang-tools-extra, it'll pull in all the other dependencies, aside from that also install python3-devel and for usual build stuff `dnf group install
-   'Development Tools'`
+   'Development Tools'`, oh and CMake, you need to `sudo dnf/apt install cmake`
    a. You need to run the following command in the YouCompleteMe folder install.py --clangd-completer.
 6. [IF USIGN CCLS] Install `npm` and `yarn`. (See project git page tor installation of dependencies).
 7. If you're using linux try Cascadia Code Light Font, hope you like it

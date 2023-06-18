@@ -41,4 +41,5 @@
 /.cache/
 /.wget-hsts
 /.xsession-errors
-
+/rpmbuild
+/rpmbuild/**

@@ -8,6 +8,7 @@ call plug#begin()
 	Plug 'phanviet/vim-monokai-pro'
 	Plug 'preservim/tagbar'
 	Plug 'scrooloose/nerdtree'
+	Plug 'airblade/vim-rooter'
 	Plug 'ctrlpvim/ctrlp.vim'
 	Plug 'ycm-core/YouCompleteMe'
 	Plug 'ddrscott/vim-side-search'
@@ -15,7 +16,6 @@ call plug#begin()
 	Plug 'rhysd/vim-clang-format'
   Plug 'sainnhe/sonokai'
 	Plug 'bfrg/vim-cpp-modern'
-	Plug 'airblade/vim-rooter'
   Plug 'NLKNguyen/papercolor-theme'
 call plug#end()
 set noea
@@ -37,11 +37,11 @@ if has('termguicolors')
 endif
 
 " The configuration options should be placed before `colorscheme sonokai`.
-let g:sonokai_style = 'andromeda'
-let g:sonokai_better_performance = 1
-let g:sonokai_transparent_background = 1
-let g:sonokai_diagnostic_text_highlight = 1
-colorscheme sonokai
+"let g:sonokai_style = 'andromeda'
+"let g:sonokai_better_performance = 1
+"let g:sonokai_transparent_background = 1
+"let g:sonokai_diagnostic_text_highlight = 1
+"colorscheme sonokai
 " Fix the separator line cause it was really annoying to not see it
 hi VertSplit guifg=#5c6773
 let g:airline_powerline_fonts = 1
@@ -70,11 +70,12 @@ nmap <leader>bl :ls<CR>
 " ctrl-p
 let g:ctrlp_custom_ignore = {
   \ 'dir': '\v[\/](\.(git|hg|svn)|\_site)$',
-  \ 'file': '\v\.(o|d|exe|so|dll|class|png|jpg|jpeg)$',
+  \ 'file': '\v\.(mod|ko|o|d|exe|so|dll|class|png|jpg|jpeg)$',
 \}
 
 " Use the nearest .git|.svn|.hg|.bzr directory as the cwd
 let g:ctrlp_working_path_mode = 'r'
+let g:ctrlp_root_markers = ['pom.xml', '.git', 'Makefile', 'compile_commands.json', '.svn' ]
 nmap <leader>p :CtrlP<cr>  " enter file search mode
 
 " Nerdtree
@@ -254,14 +255,16 @@ nmap <leader>n :NERDTreeFind<CR>  " open current buffer in file tree
 " How should we execute the search?
 " --heading and --stats are required!
 let g:side_search_prg = 'rg --word-regexp'
+  \. " --no-ignore"
+  \. " --no-config"
   \. " --glob='\\\!*tags'"
   \. " --glob='\\\!*\.ccls-cache*'"
   \. " --glob='\\\!*\.cache*'"
   \. " --glob='\\\!*\Changelog*'"
-  \. " --heading --stats -B 1 -A 4"
+  \. " --heading --stats -B 3 -A 3"
   \. " --line-number"
+  \. " -tc -tcpp -tasm -tcmake -tmake -tamake -tmeson -tsh"
   "\. " --case-sensitive"
-  "\. " -tc -tcpp -tasm -tcmake -tmake -tamake -tmeson -tsh"
 
 " Can use `vnew` or `new`
 let g:side_search_splitter = 'vnew'
@@ -297,7 +300,7 @@ autocmd FileType c,cpp,objc nnoremap <buffer><Leader>cf :<C-u>ClangFormat<CR>
 autocmd FileType c,cpp,objc vnoremap <buffer><Leader>cf :ClangFormat<CR>
 " Toggle auto formatting:
 nmap <Leader>C :ClangFormatAutoToggle<CR>
-let g:rooter_patterns = [ 'compile_commands.json', '.git' ]
+let g:rooter_patterns = [ 'compile_commands.json', '.git', "Makefile" ]
 let g:cpp_attributes_highlight=1
 let g:cpp_member_highlight=1
 let g:cpp_function_highlight=1

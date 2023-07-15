@@ -17,6 +17,7 @@ call plug#begin()
   Plug 'sainnhe/sonokai'
 	Plug 'bfrg/vim-cpp-modern'
   Plug 'NLKNguyen/papercolor-theme'
+  Plug 'tpope/vim-fugitive'
 call plug#end()
 set noea
 set number
@@ -300,34 +301,34 @@ autocmd FileType c,cpp,objc nnoremap <buffer><Leader>cf :<C-u>ClangFormat<CR>
 autocmd FileType c,cpp,objc vnoremap <buffer><Leader>cf :ClangFormat<CR>
 " Toggle auto formatting:
 nmap <Leader>C :ClangFormatAutoToggle<CR>
-let g:rooter_patterns = [ 'compile_commands.json', '.git', "Makefile" ]
+let g:rooter_patterns = [ 'compile_commands.json', '.git' ]
 let g:cpp_attributes_highlight=1
 let g:cpp_member_highlight=1
 let g:cpp_function_highlight=1
 
 
 " FOR LIGHT COLORSCHEMES
-set background=light
-" PaperColor theme
-let g:PaperColor_Theme_Options = {
-  \   'language': {
-  \     'python': {
-  \       'highlight_builtins' : 1
-  \     },
-  \     'cpp': {
-  \       'highlight_standard_library': 1
-  \     },
-  \     'c': {
-  \       'highlight_builtins' : 1
-  \     }
-  \   },
-  \   'theme': {
-  \     'default.light': {
-  \       'transparent_background': 1
-  \     }
-  \   }
-  \ }
-colorscheme PaperColor
+"set background=light
+"" PaperColor theme
+"let g:PaperColor_Theme_Options = {
+"  \   'language': {
+"  \     'python': {
+"  \       'highlight_builtins' : 1
+"  \     },
+"  \     'cpp': {
+"  \       'highlight_standard_library': 1
+"  \     },
+"  \     'c': {
+"  \       'highlight_builtins' : 1
+"  \     }
+"  \   },
+"  \   'theme': {
+"  \     'default.light': {
+"  \       'transparent_background': 1
+"  \     }
+"  \   }
+"  \ }
+"colorscheme PaperColor
 
 " Redirect command output of vim to new buffer, usage: Redir <command>
 " [source](https://vi.stackexchange.com/a/8379)

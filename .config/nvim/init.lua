@@ -25,7 +25,7 @@ Kickstart.nvim is a template for your own configuration.
 Kickstart Guide:
 
 I have left several `:help X` comments throughout the init.lua
-You should run that command and read that help section for more information.
+You should run that command and read that help section for more inf
 
 In addition, I have some `NOTE:` items throughout the file.
 These are for you, the reader to help understand what is happening. Feel free to delete
@@ -91,9 +91,9 @@ require('lazy').setup({
       { 'j-hui/fidget.nvim', tag = 'legacy', opts = {} },
 
       -- Additional lua configuration, makes nvim stuff amazing!
+      'folke/neodev.nvim'
     },
   },
-  { 'folke/neodev.nvim', },
   {
     -- Autocompletion
     'hrsh7th/nvim-cmp',
@@ -152,12 +152,23 @@ require('lazy').setup({
   },
 
   {
+    'folke/tokyonight.nvim',
+    priority = 1000,
+    config = function()
+      require('tokyonight').setup({
+        transparent = true
+      })
+      vim.cmd("colorscheme tokyonight-night")
+    end
+  },
+  {
     -- Theme inspired by Atom
-    -- 'navarasu/onedark.nvim',
-    -- priority = 1000,
-    -- config = function()
-    --   vim.cmd.colorscheme 'onedark'
-    -- end,
+    'navarasu/onedark.nvim',
+    priority = 1000,
+    config = function()
+    end,
+  },
+  {
     'rose-pine/neovim',
     priority = 1000,
     config = function()
@@ -169,10 +180,8 @@ require('lazy').setup({
         disable_float_background = false,
         disable_italics = false
       })
-      vim.cmd.colorscheme 'rose-pine'
     end
   },
-
   {
     -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
@@ -455,6 +464,9 @@ vim.defer_fn(function()
         },
       },
     },
+    modules = {},
+    sync_install = true,
+    ignore_install = {}
   })
 end, 0)
 
@@ -502,6 +514,7 @@ local on_attach = function(_, bufnr)
   nmap('<leader>wl', function()
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   end, '[W]orkspace [L]ist Folders')
+  vim.keymap.set('v', ',cf', vim.lsp.buf.format, { desc = 'Format with LSP' } )
 
   -- Create a command `:Format` local to the LSP buffer
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
@@ -535,7 +548,11 @@ require('mason-lspconfig').setup()
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
 local servers = {
-  -- clangd = {},
+  clangd = {
+    filetypes = {
+      "c", "cpp", "objc", "objcpp", "cuda", "proto"
+    },
+  },
   -- gopls = {},
   -- pyright = {},
   -- rust_analyzer = {},
@@ -573,6 +590,28 @@ mason_lspconfig.setup_handlers {
       filetypes = (servers[server_name] or {}).filetypes,
     }
   end,
+  ["clangd"] = function()
+    require('lspconfig').clangd.setup {
+      cmd = {
+        "clangd",
+        "--clang-tidy",
+        "--completion-style=detailed",
+        "--cross-file-rename",
+        "--header-insertion=iwyu",
+        "--clang-tidy-checks=*",
+        "--all-scopes-completion",
+        "--cross-file-rename",
+        "--completion-style=detailed",
+        "--header-insertion-decorators",
+        "--header-insertion=iwyu",
+      },
+      capabilities = capabilities,
+      on_attach = on_attach,
+      settings = servers['clangd'],
+      filetypes = (servers['clangd'] or {}).filetypes,
+
+    }
+  end
 }
 
 -- [[ Configure nvim-cmp ]]
@@ -687,7 +726,6 @@ cmp.setup {
 --     -- ...,
 --   }
 -- }
-vim.diagnostic.disable()
 vim.keymap.set("n", "<F5>", ":lua require('dap').continue() <CR>")
 vim.keymap.set("n", "<F10>", ":lua require('dap').step_over() <CR>")
 vim.keymap.set("n", "<F11>", ":lua require('dap').step_into() <CR>")
@@ -695,3 +733,7 @@ vim.keymap.set("n", "<F12>", ":lua require('dap').step_out() <CR>")
 vim.keymap.set("n", "<F9>", ":lua require('dap').toggle_breakpoint() <CR>")
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+require('neodev').setup()
+
+vim.opt.equalalways = false
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Escape terminal mode" } )

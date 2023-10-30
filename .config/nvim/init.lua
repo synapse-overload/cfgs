@@ -631,14 +631,12 @@ mason_lspconfig.setup_handlers {
         "clangd",
         "--clang-tidy",
         "--completion-style=detailed",
-        "--cross-file-rename",
         "--header-insertion=iwyu",
-        "--clang-tidy-checks=*",
         "--all-scopes-completion",
-        "--cross-file-rename",
-        "--completion-style=detailed",
         "--header-insertion-decorators",
-        "--header-insertion=iwyu",
+        "--background-index", -- background-index forces the build of a per-project index and helps 
+                              -- out finding definitions when searching from header files, otherwise
+                              --  you're stuck with no def until you actually open the source for the impl
       },
       capabilities = capabilities,
       on_attach = on_attach,
@@ -789,4 +787,5 @@ vim.keymap.set("n", "<F9>", ":lua require('dap').toggle_breakpoint() <CR>")
 -- vim: ts=2 sts=2 sw=2 et
 
 vim.opt.equalalways = false
+vim.opt.wrap = true
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Escape terminal mode" } )

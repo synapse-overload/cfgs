@@ -360,6 +360,7 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
   defaults = {
+    wrap_results = true,
     mappings = {
       i = {
         ['<C-u>'] = false,
@@ -555,7 +556,11 @@ local servers = {
   },
   -- gopls = {},
   -- pyright = {},
-  -- rust_analyzer = {},
+  rust_analyzer = {
+    filetypes = {
+      "rust"
+    }
+  },
   -- tsserver = {},
   -- html = { filetypes = { 'html', 'twig', 'hbs'} },
 
@@ -592,6 +597,8 @@ mason_lspconfig.setup_handlers {
   end,
   ["clangd"] = function()
     require('lspconfig').clangd.setup {
+      -- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes 
+      -- I have to set it in a separate case
       cmd = {
         "clangd",
         "--clang-tidy",
@@ -609,8 +616,27 @@ mason_lspconfig.setup_handlers {
       on_attach = on_attach,
       settings = servers['clangd'],
       filetypes = (servers['clangd'] or {}).filetypes,
-
     }
+  end,
+  ["rust_analyzer"] = function()
+    require('lspconfig').rust_analyzer.setup({
+      cmd = {
+        -- "/usr/bin/rust-analyzer"
+        "/tmp/rust-analyzer/target/debug/rust-analyzer"
+      },
+      settings = {
+        ['rust-analyzer'] = {
+          rustfmt = {
+            rangeFormatting = {
+                enable = true
+              }
+            }
+          }
+      },
+      capabilities = capabilities,
+      on_attach = on_attach,
+      filetypes = (servers['rust_analyzer'] or {}).filetypes,
+    })
   end
 }
 

@@ -75,6 +75,16 @@ require('lazy').setup({
 
   -- Detect tabstop and shiftwidth automatically
   -- 'tpope/vim-sleuth',
+  
+
+  -- neodev plugin
+  {
+      'folke/neodev.nvim',
+      name = 'neodev',
+      config = function()
+        require('neodev').setup()
+      end
+  },
 
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
@@ -496,11 +506,29 @@ local on_attach = function(_, bufnr)
 
   nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
   nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+  function LSPBIWrap(tsbuiltin)
+    local opts = {
+      -- -- Defaults are commented 
+      -- include_declaration = true,
+      -- include_current_file = true,
+      -- fname_width = 30,
+      -- show_line = true,
+      -- trim_text = false,
+      -- file_encoding = ?
+      fname_width = 90,
+      trim_text = true
+    }
+    return function()
+      tsbuiltin(opts)
+    end
+  end
 
-  nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-  nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-  nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-  nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
+  -- Wrap these functions so that they get the fname_width and trim_text params set
+  nmap('gd', LSPBIWrap(require('telescope.builtin').lsp_definitions), '[G]oto [D]efinition')
+  nmap('gr', LSPBIWrap(require('telescope.builtin').lsp_references), '[G]oto [R]eferences')
+  nmap('gI', LSPBIWrap(require('telescope.builtin').lsp_implementations), '[G]oto [I]mplementation')
+  nmap('<leader>D', LSPBIWrap(require('telescope.builtin').lsp_type_definitions), 'Type [D]efinition')
+
   nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
   nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
@@ -573,7 +601,7 @@ local servers = {
 }
 
 -- Setup neovim lua configuration
-require('neodev').setup()
+-- require('neodev').setup()
 
 -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
 local capabilities = vim.lsp.protocol.make_client_capabilities()
@@ -759,7 +787,6 @@ vim.keymap.set("n", "<F12>", ":lua require('dap').step_out() <CR>")
 vim.keymap.set("n", "<F9>", ":lua require('dap').toggle_breakpoint() <CR>")
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
-require('neodev').setup()
 
 vim.opt.equalalways = false
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Escape terminal mode" } )

@@ -370,11 +370,19 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
   defaults = {
+    initial_mode = "insert",
     wrap_results = true,
+    path_display = {
+      shorten = {
+        len = 2,
+        exclude = { -2, -1 }
+      }
+    },
+    dynamic_preview_title = true,
     mappings = {
       i = {
         ['<C-u>'] = false,
-        ['<C-d>'] = false,
+        ['<C-d>'] = require('telescope.actions').delete_buffer,
       },
     },
   },
@@ -396,6 +404,7 @@ end, { desc = '[/] Fuzzily search in current buffer' })
 
 vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
 vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
+vim.keymap.set('n', '<C-p>', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
 vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
@@ -506,6 +515,7 @@ local on_attach = function(_, bufnr)
 
   nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
   nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+
   function LSPBIWrap(tsbuiltin)
     local opts = {
       -- -- Defaults are commented 
@@ -515,8 +525,7 @@ local on_attach = function(_, bufnr)
       -- show_line = true,
       -- trim_text = false,
       -- file_encoding = ?
-      fname_width = 90,
-      trim_text = true
+      fname_width = 40,
     }
     return function()
       tsbuiltin(opts)
@@ -528,8 +537,7 @@ local on_attach = function(_, bufnr)
   nmap('gr', LSPBIWrap(require('telescope.builtin').lsp_references), '[G]oto [R]eferences')
   nmap('gI', LSPBIWrap(require('telescope.builtin').lsp_implementations), '[G]oto [I]mplementation')
   nmap('<leader>D', LSPBIWrap(require('telescope.builtin').lsp_type_definitions), 'Type [D]efinition')
-
-  nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
+  nmap('<leader>ds', LSPBIWrap(require('telescope.builtin').lsp_document_symbols), '[D]ocument [S]ymbols')
   nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
 
   -- See `:help K` for why this keymap
@@ -646,10 +654,6 @@ mason_lspconfig.setup_handlers {
   end,
   ["rust_analyzer"] = function()
     require('lspconfig').rust_analyzer.setup({
-      cmd = {
-        -- "/usr/bin/rust-analyzer"
-        "/tmp/rust-analyzer/target/debug/rust-analyzer"
-      },
       settings = {
         ['rust-analyzer'] = {
           rustfmt = {

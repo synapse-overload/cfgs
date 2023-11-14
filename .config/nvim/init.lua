@@ -75,15 +75,18 @@ require('lazy').setup({
 
   -- Detect tabstop and shiftwidth automatically
   -- 'tpope/vim-sleuth',
-  
+
 
   -- neodev plugin
   {
-      'folke/neodev.nvim',
-      name = 'neodev',
-      config = function()
-        require('neodev').setup()
-      end
+    'folke/neodev.nvim',
+    name = 'neodev',
+    config = function()
+      require('neodev').setup()
+    end
+  },
+  {
+    "preservim/tagbar"
   },
 
   -- NOTE: This is where your plugins related to LSP can be installed.
@@ -121,7 +124,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',        opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -168,7 +171,6 @@ require('lazy').setup({
       require('tokyonight').setup({
         transparent = true
       })
-      vim.cmd("colorscheme tokyonight-night")
     end
   },
   {
@@ -182,18 +184,19 @@ require('lazy').setup({
     'rose-pine/neovim',
     priority = 1000,
     config = function()
-        require('rose-pine').setup({
+      require('rose-pine').setup({
         variant = 'auto',
         dark_variant = 'main',
         dim_nc_background = false,
-        disable_background = false,
-        disable_float_background = false,
+        disable_background = true,
+        disable_float_background = true,
         disable_italics = false
       })
+      vim.cmd("colorscheme rose-pine")
     end
   },
   {
-    -- Set lualine as statusline
+    -- Set lualine as atatusline
     'nvim-lualine/lualine.nvim',
     -- See `:help lualine.txt`
     opts = {
@@ -204,7 +207,16 @@ require('lazy').setup({
         -- section_separators = '',
       },
       tabline = {
-        lualine_a = {'buffers'}
+        lualine_a = { 'buffers' }
+
+      },
+      sections = {
+        lualine_a = { 'mode' },
+        lualine_b = { 'branch', 'diff', 'diagnostics' },
+        lualine_c = { 'filename' },
+        lualine_x = { "%{tagbar#currenttag('[%s] ','')}", 'encoding', 'fileformat', 'filetype' },
+        lualine_y = { 'progress' },
+        lualine_z = { 'location' }
       }
     },
   },
@@ -411,12 +423,12 @@ vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
 vim.keymap.set('n', '<leader>kd', vim.diagnostic.hide, { desc = '[K]ill diagnostics' })
-vim.keymap.set('n', '<leader>ks', vim.diagnostic.show, { desc = '[K]ill diagnostics stop'})
-vim.keymap.set('n', '<leader>ke', vim.diagnostic.enable, { desc = '[K]ill diagnostics forever disable'})
+vim.keymap.set('n', '<leader>ks', vim.diagnostic.show, { desc = '[K]ill diagnostics stop' })
+vim.keymap.set('n', '<leader>ke', vim.diagnostic.enable, { desc = '[K]ill diagnostics forever disable' })
 vim.keymap.set('n', '<leader>kf', vim.diagnostic.disable, { desc = '[K]ill diagnostics forever' })
-vim.keymap.set('n', ',q', ":bdel <CR>", { desc = '[B]uffer del'})
-vim.keymap.set('n', ',l', ":bnext <CR>", { desc = '[B]uffer next'})
-vim.keymap.set('n', ',h', ":bprev<CR>", { desc = '[B]uffer previous'})
+vim.keymap.set('n', ',q', ":b# <BAR> bd# <CR>", { desc = '[B]uffer del' })
+vim.keymap.set('n', ',l', ":bnext <CR>", { desc = '[B]uffer next' })
+vim.keymap.set('n', ',h', ":bprev<CR>", { desc = '[B]uffer previous' })
 
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
@@ -424,7 +436,8 @@ vim.keymap.set('n', ',h', ":bprev<CR>", { desc = '[B]uffer previous'})
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup({
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim',
+      'bash' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
@@ -518,7 +531,7 @@ local on_attach = function(_, bufnr)
 
   function LSPBIWrap(tsbuiltin)
     local opts = {
-      -- -- Defaults are commented 
+      -- -- Defaults are commented
       -- include_declaration = true,
       -- include_current_file = true,
       -- fname_width = 30,
@@ -551,7 +564,7 @@ local on_attach = function(_, bufnr)
   nmap('<leader>wl', function()
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
   end, '[W]orkspace [L]ist Folders')
-  vim.keymap.set('v', ',cf', vim.lsp.buf.format, { desc = 'Format with LSP' } )
+  vim.keymap.set('v', ',cf', vim.lsp.buf.format, { desc = 'Format with LSP' })
 
   -- Create a command `:Format` local to the LSP buffer
   vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
@@ -568,7 +581,7 @@ require('which-key').register {
   ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
   ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
   ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-  ['<leader>k'] = { name = '[K]ill', _ = 'which_key_ignore'}
+  ['<leader>k'] = { name = '[K]ill', _ = 'which_key_ignore' }
 }
 
 -- mason-lspconfig requires that these setup functions are called in this order
@@ -633,7 +646,7 @@ mason_lspconfig.setup_handlers {
   end,
   ["clangd"] = function()
     require('lspconfig').clangd.setup {
-      -- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes 
+      -- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes
       -- I have to set it in a separate case
       cmd = {
         "clangd",
@@ -642,9 +655,9 @@ mason_lspconfig.setup_handlers {
         "--header-insertion=iwyu",
         "--all-scopes-completion",
         "--header-insertion-decorators",
-        "--background-index", -- background-index forces the build of a per-project index and helps 
-                              -- out finding definitions when searching from header files, otherwise
-                              --  you're stuck with no def until you actually open the source for the impl
+        "--background-index", -- background-index forces the build of a per-project index and helps
+        -- out finding definitions when searching from header files, otherwise
+        --  you're stuck with no def until you actually open the source for the impl
       },
       capabilities = capabilities,
       on_attach = on_attach,
@@ -658,10 +671,10 @@ mason_lspconfig.setup_handlers {
         ['rust-analyzer'] = {
           rustfmt = {
             rangeFormatting = {
-                enable = true
-              }
+              enable = true
             }
           }
+        }
       },
       capabilities = capabilities,
       on_attach = on_attach,
@@ -792,4 +805,4 @@ vim.keymap.set("n", "<F9>", ":lua require('dap').toggle_breakpoint() <CR>")
 
 vim.opt.equalalways = false
 vim.opt.wrap = true
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Escape terminal mode" } )
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Escape terminal mode" })

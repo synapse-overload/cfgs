@@ -165,6 +165,10 @@ require('lazy').setup({
   },
 
   {
+    'chrismccord/bclose.vim'
+  },
+
+  {
     'folke/tokyonight.nvim',
     priority = 1000,
     config = function()
@@ -178,6 +182,16 @@ require('lazy').setup({
     'navarasu/onedark.nvim',
     priority = 1000,
     config = function()
+      require('onedark').setup {
+        -- Main options --
+        style = 'light',           -- Default theme style. Choose between 'dark', 'darker', 'cool', 'deep', 'warm', 'warmer' and 'light'
+        transparent = true,      -- Show/hide background
+        term_colors = true,       -- Change terminal color as per the selected theme style
+        ending_tildes = false,    -- Show the end-of-buffer tildes. By default they are hidden
+        cmp_itemkind_reverse = false, -- reverse item kind highlights in cmp menu
+      }
+
+      vim.cmd("colorscheme onedark");
     end,
   },
   {
@@ -192,7 +206,7 @@ require('lazy').setup({
         disable_float_background = true,
         disable_italics = false
       })
-      vim.cmd("colorscheme rose-pine")
+      -- vim.cmd("colorscheme rose-pine")
     end
   },
   {
@@ -228,7 +242,8 @@ require('lazy').setup({
     -- See `:help ibl`
     main = 'ibl',
     opts = {
-      indent = { char = "▏" }
+      indent = { char = "▏" },
+      scope = { exclude = { language = { 'python' } } }
     },
   },
 
@@ -327,7 +342,7 @@ vim.o.mouse = 'a'
 -- tab stuff
 vim.o.tabstop = 4
 vim.o.shiftwidth = 4
-vim.o.smarttab = 'on'
+vim.o.smarttab = true
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -426,7 +441,7 @@ vim.keymap.set('n', '<leader>kd', vim.diagnostic.hide, { desc = '[K]ill diagnost
 vim.keymap.set('n', '<leader>ks', vim.diagnostic.show, { desc = '[K]ill diagnostics stop' })
 vim.keymap.set('n', '<leader>ke', vim.diagnostic.enable, { desc = '[K]ill diagnostics forever disable' })
 vim.keymap.set('n', '<leader>kf', vim.diagnostic.disable, { desc = '[K]ill diagnostics forever' })
-vim.keymap.set('n', ',q', ":b# <BAR> bd# <CR>", { desc = '[B]uffer del' })
+vim.keymap.set('n', ',q', ":Bclose <CR>", { desc = '[B]uffer del' })
 vim.keymap.set('n', ',l', ":bnext <CR>", { desc = '[B]uffer next' })
 vim.keymap.set('n', ',h', ":bprev<CR>", { desc = '[B]uffer previous' })
 
@@ -704,7 +719,7 @@ cmp.setup {
     ['<C-Space>'] = cmp.mapping.complete {},
     ['<CR>'] = cmp.mapping.confirm {
       behavior = cmp.ConfirmBehavior.Replace,
-      select = true,
+      select = false,
     },
     ['<Tab>'] = cmp.mapping(function(fallback)
       if cmp.visible() then

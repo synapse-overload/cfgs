@@ -619,7 +619,11 @@ local servers = {
     },
   },
   -- gopls = {},
-  -- pyright = {},
+  sqlls = {
+    filetypes = { "sql" }
+  },
+  bashls = { filetypes = { "bash", "sh" } },
+  pylsp = {},
   rust_analyzer = {
     filetypes = {
       "rust"

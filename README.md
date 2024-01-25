@@ -8,3 +8,4 @@ get a compile_commands.json file. Alternatively use `compiledb` and look on the 
    a. You need to run the following command in the YouCompleteMe folder install.py --clangd-completer.
 6. [IF USIGN CCLS] Install `npm` and `yarn`. (See project git page tor installation of dependencies).
 7. If you're using linux try Cascadia Code Light Font, hope you like it
+8. Don't forget to `mkdir ~/.zsh && ln -s $PWD .git-completion.zsh ~/.zsh/_git` to have zsh completions

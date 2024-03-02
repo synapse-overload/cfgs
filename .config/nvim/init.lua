@@ -65,7 +65,7 @@ vim.opt.rtp:prepend(lazypath)
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
-
+	'stsewd/sphinx.nvim',
   { "nvim-tree/nvim-web-devicons", lazy = true },
   -- NOTE: First, some plugins that don't require any configuration
 
@@ -138,7 +138,8 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
       on_attach = function(bufnr)
-        vim.keymap.set('n', '<leader>hp', require('gitsigns').preview_hunk, { buffer = bufnr, desc = 'Preview git hunk' })
+				vim.keymap.set('n', '<leader>hp', require('gitsigns').preview_hunk,
+					{ buffer = bufnr, desc = 'Preview git hunk' })
 
         -- don't override the built-in and fugitive keymaps
         local gs = package.loaded.gitsigns
@@ -227,7 +228,7 @@ require('lazy').setup({
       sections = {
         lualine_a = { 'mode' },
         lualine_b = { 'branch', 'diff', 'diagnostics' },
-        lualine_c = { 'filename' },
+				lualine_c = { 'filename', path = 2 },
         lualine_x = { "%{tagbar#currenttag('[%s] ','')}", 'encoding', 'fileformat', 'filetype' },
         lualine_y = { 'progress' },
         lualine_z = { 'location' }
@@ -249,6 +250,16 @@ require('lazy').setup({
 
   -- "gc" to comment visual regions/lines
   { 'numToStr/Comment.nvim', opts = {} },
+	{
+		'nvim-telescope/telescope-fzf-native.nvim',
+		-- NOTE: If you are having trouble with this installation,
+		--       refer to the README for telescope-fzf-native for more instructions.
+		build = 'make',
+		cond = function()
+			return vim.fn.executable 'make' == 1
+		end,
+	},
+
 
   -- Fuzzy Finder (files, lsp, etc)
   {
@@ -256,18 +267,12 @@ require('lazy').setup({
     branch = '0.1.x',
     dependencies = {
       'nvim-lua/plenary.nvim',
+			'nvim-telescope/telescope-live-grep-args.nvim',
+
       -- Fuzzy Finder Algorithm which requires local dependencies to be built.
       -- Only load if `make` is available. Make sure you have the system
       -- requirements installed.
-      {
         'nvim-telescope/telescope-fzf-native.nvim',
-        -- NOTE: If you are having trouble with this installation,
-        --       refer to the README for telescope-fzf-native for more instructions.
-        build = 'make',
-        cond = function()
-          return vim.fn.executable 'make' == 1
-        end,
-      },
     },
   },
 
@@ -279,6 +284,12 @@ require('lazy').setup({
     },
     build = ':TSUpdate',
   },
+	{
+		"tree-sitter/tree-sitter-cpp",
+		dependencies = {
+			'nvim-treesitter/nvim-treesitter',
+		}
+	},
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
@@ -293,9 +304,19 @@ require('lazy').setup({
   --
   --    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
   -- { import = 'custom.plugins' },
+	{
+		"theHamsta/nvim-dap-virtual-text",
+		event = "VeryLazy",
+		config = function()
+			require("nvim-dap-virtual-text").setup()
+		end
+	},
+
   {
     "rcarriga/nvim-dap-ui",
-    dependencies = "mfussenegger/nvim-dap",
+		dependencies = {
+			"mfussenegger/nvim-dap",
+		},
     event = "VeryLazy",
     config = function()
       local dap = require("dap")
@@ -324,6 +345,7 @@ require('lazy').setup({
     }
   },
   { "mfussenegger/nvim-dap" },
+	{ "liuchengxu/vista.vim" },
 })
 
 -- [[ Setting options ]]
@@ -342,7 +364,7 @@ vim.o.mouse = 'a'
 -- tab stuff
 vim.o.tabstop = 4
 vim.o.shiftwidth = 4
-vim.o.smarttab = true
+vim.o.smarttab = false
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -367,7 +389,7 @@ vim.o.updatetime = 250
 vim.o.timeoutlen = 300
 
 -- Set completeopt to have a better completion experience
-vim.o.completeopt = 'menuone,noselect'
+vim.o.completeopt = 'menuone,noinsert,noselect'
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
@@ -444,14 +466,14 @@ vim.keymap.set('n', '<leader>kf', vim.diagnostic.disable, { desc = '[K]ill diagn
 vim.keymap.set('n', ',q', ":Bclose <CR>", { desc = '[B]uffer del' })
 vim.keymap.set('n', ',l', ":bnext <CR>", { desc = '[B]uffer next' })
 vim.keymap.set('n', ',h', ":bprev<CR>", { desc = '[B]uffer previous' })
-
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup({
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim',
+		ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc',
+			'vim',
       'bash' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
@@ -596,7 +618,8 @@ require('which-key').register {
   ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
   ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
   ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-  ['<leader>k'] = { name = '[K]ill', _ = 'which_key_ignore' }
+	['<leader>k'] = { name = '[K]ill', _ = 'which_key_ignore' },
+	['<leader>f'] = { name = '[f]iddle', _ = 'which_key_ignore' }
 }
 
 -- mason-lspconfig requires that these setup functions are called in this order
@@ -669,12 +692,13 @@ mason_lspconfig.setup_handlers {
       -- I have to set it in a separate case
       cmd = {
         "clangd",
-        "--clang-tidy",
+				"--background-index",
         "--completion-style=detailed",
         "--header-insertion=iwyu",
         "--all-scopes-completion",
         "--header-insertion-decorators",
-        "--background-index", -- background-index forces the build of a per-project index and helps
+				"--limit-references=0",
+				"--clang-tidy"
         -- out finding definitions when searching from header files, otherwise
         --  you're stuck with no def until you actually open the source for the impl
       },
@@ -814,14 +838,24 @@ cmp.setup {
 --     -- ...,
 --   }
 -- }
-vim.keymap.set("n", "<F5>", ":lua require('dap').continue() <CR>")
-vim.keymap.set("n", "<F10>", ":lua require('dap').step_over() <CR>")
-vim.keymap.set("n", "<F11>", ":lua require('dap').step_into() <CR>")
-vim.keymap.set("n", "<F12>", ":lua require('dap').step_out() <CR>")
-vim.keymap.set("n", "<F9>", ":lua require('dap').toggle_breakpoint() <CR>")
+vim.keymap.set("n", "<F5>", function() require('dap').continue() end)
+vim.keymap.set("n", "<F10>", function() require('dap').step_over() end)
+vim.keymap.set("n", "<S-F11>", function() require('dap').step_into() end)
+vim.keymap.set("n", "<S-F12>", function() require('dap').step_out() end)
+vim.keymap.set("n", "<F9>", function() require('dap').toggle_breakpoint() end)
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
 
 vim.opt.equalalways = false
 vim.opt.wrap = true
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { desc = "Escape terminal mode" })
+vim.cmd([[
+  packadd termdebug
+  au User TermdebugStartPost vertical resize 50
+  let g:termdebug_wide=1
+]])
+
+-- vim.keymap.set("n", "<leader>fg", ":lua require('telescope').extensions.live_grep_args.live_grep_args()<CR>")
+
+vim.keymap.set("n", "<leader>fg", function() require('telescope').extensions.live_grep_args.live_grep_args() end,
+	{ desc = "[g]rep params" })

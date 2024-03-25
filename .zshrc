@@ -82,6 +82,7 @@ export EDITOR=vim
 export PAGER='less -R'
 export CALIBRE_USE_DARK_PALETTE=1
 alias ll='ls -lart --color'
+alias l='ls -la --color'
 plugins=(colored-man-pages)
 userid=$(id -u)
 if [[ $userid -ne 0 ]]; then
@@ -109,3 +110,4 @@ source /home/razvan/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 export LIBVA_DRIVER_NAME=iHD
 zstyle ':completion:*:*:git:*' script ~/.git-completion.bash
 fpath=(~/.zsh $fpath)
+

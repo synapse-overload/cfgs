@@ -111,3 +111,40 @@ export LIBVA_DRIVER_NAME=iHD
 zstyle ':completion:*:*:git:*' script ~/.git-completion.bash
 fpath=(~/.zsh $fpath)
 
+
+function new_proj()
+{
+    local proj_name=$1
+    if [ -z "${proj_name}" ]; then
+	echo "Please specify the project name as first argument."
+	return 1
+    fi
+
+    mkdir ${proj_name}
+    cd ${proj_name}
+
+    cat <<EOF > CMakeLists.txt
+cmake_minimum_required(VERSION 3.19)
+project(${proj_name} VERSION 1.0.0)
+add_executable(${proj_name} main.cc)
+EOF
+
+    cat <<EOF > main.cc
+#include <iostream>
+
+int main(int, char**) {
+    std::cout << "Hello, world!\n";
+
+}
+EOF
+
+    cat <<'EOF' > Makefile
+.PHONY: build
+
+build:
+	-mkdir build
+	-cmake -S . -B ./build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=True -G Ninja
+	-ln -s ./build/compile_commands.json compile_commands.json
+	cmake --build build -j $$(nproc)
+EOF
+}

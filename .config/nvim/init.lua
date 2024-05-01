@@ -43,7 +43,8 @@ require('lazy').setup {
           javascript = { { 'prettierd', 'prettier' } },
           yaml = { 'yamlfmt' },
           sh = { 'shfmt' },
-          json = { 'fixjson' }
+          json = { 'fixjson' },
+          cpp = { 'clang-format'}
         },
       }
 
@@ -386,7 +387,9 @@ vim.o.mouse = 'a'
 -- tab stuff
 vim.o.tabstop = 4
 vim.o.shiftwidth = 4
-vim.o.smarttab = false
+vim.o.smarttab = true
+vim.o.expandtab = true
+vim.o.softtabstop = 4
 
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
@@ -503,7 +506,7 @@ vim.defer_fn(function()
     auto_install = false,
 
     highlight = { enable = true },
-    indent = { enable = true },
+    indent = { enable = false },
     incremental_selection = {
       enable = true,
       keymaps = {
@@ -683,6 +686,9 @@ local servers = {
       telemetry = { enable = false },
     },
   },
+  pyright = {
+    filetypes = { 'python' }
+  }
 }
 
 -- Setup neovim lua configuration
@@ -745,6 +751,9 @@ mason_lspconfig.setup_handlers {
       filetypes = (servers['rust_analyzer'] or {}).filetypes,
     }
   end,
+  ['pyright'] = function()
+    require('lspconfig').pyright.setup{}
+  end
 }
 
 -- [[ Configure nvim-cmp ]]
@@ -880,8 +889,6 @@ end)
 vim.opt.equalalways = false
 vim.opt.wrap = true
 vim.keymap.set('t', '<Esc>', '<C-\\><C-n>', { desc = 'Escape terminal mode' })
-vim.o.expandtab = true
-vim.o.softtabstop = 4
 
 vim.cmd [[
   packadd termdebug

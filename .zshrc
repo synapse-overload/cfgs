@@ -148,3 +148,5 @@ build:
 	cmake --build build -j $$(nproc)
 EOF
 }
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

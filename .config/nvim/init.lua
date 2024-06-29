@@ -176,7 +176,7 @@ require('lazy').setup {
     end,
   },
   {
-    'olimorris/onedarkpro.nvim',
+    'tanvirtin/monokai.nvim'
   },
   -- {
   -- 	'navarasu/onedark.nvim',
@@ -228,7 +228,6 @@ require('lazy').setup {
   },
   {
     'rebelot/kanagawa.nvim',
-    priority = 1000,
     config = function()
       require('kanagawa').setup {
         compile = false, -- enable compiling the colorscheme
@@ -256,7 +255,7 @@ require('lazy').setup {
       }
 
       -- setup must be called before loading
-      -- vim.cmd("colorscheme kanagawa")
+      vim.cmd("colorscheme kanagawa")
     end,
   },
   {
@@ -367,6 +366,22 @@ require('lazy').setup {
   { 'fei6409/log-highlight.nvim',
     config = function()
       require('log-highlight').setup{}
+    end
+  },
+  {
+    "f-person/auto-dark-mode.nvim",
+    config = function() 
+      require('auto-dark-mode').setup {
+      update_interval = 1000,
+      set_dark_mode = function()
+        -- vim.api.nvim_set_option("background", "dark")
+        vim.cmd("colorscheme kanagawa-wave")
+      end,
+      set_light_mode = function()
+        -- vim.api.nvim_set_option("background", "light")
+        vim.cmd("colorscheme catppuccin-latte")
+      end,
+    }
     end
   }
 }
@@ -738,9 +753,6 @@ mason_lspconfig.setup_handlers {
   end,
   ['rust_analyzer'] = function()
     require('lspconfig').rust_analyzer.setup {
-      cmd = {
-        '/home/razvan/.cargo/bin/rust-analyzer',
-      },
       rustfmt = {
         rangeFormatting = {
           enable = true,
@@ -751,9 +763,6 @@ mason_lspconfig.setup_handlers {
       filetypes = (servers['rust_analyzer'] or {}).filetypes,
     }
   end,
-  ['pyright'] = function()
-    require('lspconfig').pyright.setup{}
-  end
 }
 
 -- [[ Configure nvim-cmp ]]
@@ -868,16 +877,80 @@ cmp.setup {
 --     -- ...,
 --   }
 -- }
-vim.keymap.set('n', '<F5>', function()
+
+
+
+local dap = require('dap')
+
+dap.adapters.lldb = {
+  type = 'executable',
+  command = '/usr/bin/lldb-dap', -- adjust as needed, must be absolute path
+  name = 'lldb'
+}
+
+dap.configurations.cpp = {
+  {
+  name = 'Launch',
+  type = 'lldb',
+  request = 'launch',
+  program = function()
+    return vim.fn.input('Path to executable: ', vim.fn.getcwd() .. '/', 'file')
+  end,
+  cwd = '${workspaceFolder}',
+  stopOnEntry = false,
+  args = {}
+  },
+  {
+    -- If you get an "Operation not permitted" error using this, try disabling YAMA:
+    --  echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+    name = "Attach to process",
+    type = 'cpp',  -- Adjust this to match your adapter name (`dap.adapters.<name>`)
+    request = 'attach',
+    pid = require('dap.utils').pick_process,
+    args = {},
+  },
+}
+dap.configurations.c = dap.configurations.cpp
+dap.configurations.rust = dap.configurations.cpp
+dap.configurations.rust = {
+  {
+    -- ... the previous config goes here ...,
+    initCommands = function()
+      -- Find out where to look for the pretty printer Python module
+      local rustc_sysroot = vim.fn.trim(vim.fn.system('rustc --print sysroot'))
+
+      local script_import = 'command script import "' .. rustc_sysroot .. '/lib/rustlib/etc/lldb_lookup.py"'
+      local commands_file = rustc_sysroot .. '/lib/rustlib/etc/lldb_commands'
+
+      local commands = {}
+      local file = io.open(commands_file, 'r')
+      if file then
+        for line in file:lines() do
+          table.insert(commands, line)
+        end
+        file:close()
+      end
+      table.insert(commands, 1, script_import)
+
+      return commands
+    end,
+    -- ...,
+  }
+}
+
+
+
+
+vim.keymap.set('n', '<leader>dr', function()
   require('dap').continue()
 end)
 vim.keymap.set('n', '<F10>', function()
   require('dap').step_over()
 end)
-vim.keymap.set('n', '<S-F11>', function()
+vim.keymap.set('n', '<leader>di', function()
   require('dap').step_into()
 end)
-vim.keymap.set('n', '<S-F12>', function()
+vim.keymap.set('n', '<leader>do', function()
   require('dap').step_out()
 end)
 vim.keymap.set('n', '<F9>', function()
@@ -909,4 +982,4 @@ if vim.lsp.inlay_hint then
 end
 
 -- vim.cmd("colorscheme tokyonight-moon")
-vim.cmd 'colorscheme kanagawa'
+-- vim.cmd 'colorscheme kanagawa'

@@ -13,7 +13,7 @@ unsetopt beep
 bindkey -e
 # End of lines configured by zsh-newuser-install
 # The following lines were added by compinstall
-zstyle :compinstall filename '/home/razvan/.zshrc'
+zstyle :compinstall filename "$HOME/.zshrc"
 
 autoload -Uz compinit
 compinit
@@ -28,7 +28,7 @@ if [ "$TERM" = "linux" ]; then
 	AGKOZAK_COLORS_PROMPT_CHAR=default      # Default text color
 	AGKOZAK_COLORS_CMD_EXEC_TIME=default    # Default text color
 	AGKOZAK_COLORS_VIRTUALENV=green
-	source /home/razvan/.config/agkozak-zsh-prompt/agkozak-zsh-prompt.plugin.zsh
+	# source $HOME/.config/agkozak-zsh-prompt/agkozak-zsh-prompt.plugin.zsh
 	#bindkey "\e[1~" beginning-of-line
 	#bindkey "\e[4~" end-of-line
 	#bindkey "\eH" backward-kill-word
@@ -38,7 +38,7 @@ if [ "$TERM" = "linux" ]; then
 else
 	ZSH_THEME=powerlevel10k
 	# powerlevel10k theme for fancy shmancy command line stuff
-	source /home/razvan/powerlevel10k/powerlevel10k.zsh-theme
+	source $HOME/powerlevel10k//powerlevel10k.zsh-theme
 	# key bindings for razvan's convenience
 	bindkey  "^[[H"   beginning-of-line
 	bindkey  "^[[F"   end-of-line
@@ -97,16 +97,16 @@ esac
 function set-title(){
 	print -Pn "\e]2;$@\a"
 }
-source /home/razvan/.aliases
+# source $HOME/.aliases
 setopt RM_STAR_SILENT
 
 [ -f /usr/share/fzf/shell/key-bindings.zsh ] && source /usr/share/fzf/shell/key-bindings.zsh
 [ -f /usr/share/fzf/shell/completion.zsh ] && source /usr/share/fzf/shell/completion.zsh
 
-export PATH=/usr/lib64/ccache:/home/razvan/.cargo/bin:/home/razvan/go/bin:${PATH}
+export PATH=/usr/lib64/ccache:$HOME/.cargo/bin:$HOME/go/bin:${PATH}
 setopt interactivecomments
 source ~/.zshrc-keyboard
-source /home/razvan/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 export LIBVA_DRIVER_NAME=iHD
 zstyle ':completion:*:*:git:*' script ~/.git-completion.bash
 fpath=(~/.zsh $fpath)
@@ -148,3 +148,7 @@ build:
 	cmake --build build -j $$(nproc)
 EOF
 }
+export PATH=$PATH:/opt/nvim-linux64/bin
+export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
+export LIBGL_ALWAYS_INDIRECT=1
+sudo /etc/init.d/dbus start &> /dev/null

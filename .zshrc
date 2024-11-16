@@ -148,7 +148,13 @@ build:
 	cmake --build build -j $$(nproc)
 EOF
 }
-export PATH=$PATH:/opt/nvim-linux64/bin
-export DISPLAY=$(cat /etc/resolv.conf | grep nameserver | awk '{print $2; exit;}'):0.0
-export LIBGL_ALWAYS_INDIRECT=1
-sudo /etc/init.d/dbus start &> /dev/null
+
+if [[ -n "${WSL_DISTRO_NAME}" ]]; then
+	export PATH=$PATH:/opt/nvim-linux64/bin
+	export DISPLAY=localhost:0
+	export LIBGL_ALWAYS_INDIRECT=1
+	# sudo /etc/init.d/dbus start &> /dev/null
+	export $(dbus-launch)
+	export QTWEBENGINE_DISABLE_SANDBOX=1
+	export QT_QPA_PLATFORM=wayland
+fi

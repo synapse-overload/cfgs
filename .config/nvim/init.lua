@@ -34,7 +34,6 @@ require("lazy").setup({
 		"mrcjkb/rustaceanvim",
 		version = "^4",
 		lazy = false,
-		config = function() end,
 	},
 	"williamboman/mason.nvim",
 	{
@@ -46,9 +45,10 @@ require("lazy").setup({
 					-- Conform will run multiple formatters sequentially
 					python = { "black", "isort" },
 					-- Use a sub-list to run only the first available formatter
-					javascript = { { "prettierd", "prettier" } },
+					javascript = { "prettierd", "prettier" },
 					yaml = { "yamlfmt" },
 					sh = { "shfmt" },
+					zsh = { "shfmt" },
 					json = { "fixjson" },
 					cpp = { "clang-format" },
 				},
@@ -60,11 +60,11 @@ require("lazy").setup({
 				-- { "-i", "2", "-filename", "$FILENAME" }
 			}
 			-- prepend_args can be a function, just like args
-			require("conform").formatters.shfmt = {
-				prepend_args = function(self, ctx)
-					return { "-i", "2" }
-				end,
-			}
+			-- require("conform").formatters.shfmt = {
+			-- 	prepend_args = function(self, ctx)
+			-- 		return { "-i", "2" }
+			-- 	end,
+			-- }
 
 			vim.api.nvim_create_user_command("Format", function(args)
 				local range = nil
@@ -103,7 +103,9 @@ require("lazy").setup({
 		},
 		config = function()
 			require("mason-nvim-lint").setup({
-				ensure_installed = {},
+				ensure_installed = {
+					"shellcheck"
+				},
 				automatic_installation = false,
 				quiet_mode = false,
 			})
@@ -118,21 +120,24 @@ require("lazy").setup({
 			"rafamadriz/friendly-snippets",
 		},
 	},
-	{ "folke/which-key.nvim",        opts = {},
+	{
+		"folke/which-key.nvim",
+		opts = {},
 		config = function()
 			local wk = require("which-key")
 			wk.add({
-				{"<leader>c", group = "[C]ode"},
-				{"<leader>d", group = "[D]ocument"},
-				{"<leader>g", group = "[G]it"},
-				{"<leader>h", group = "More git"},
-				{"<leader>r", group = "[R]ename"},
-				{"<leader>s", group = "[S]earch"},
-				{"<leader>w", group = "[W]orkspace"},
-				{"<leader>k", group = "[K]ill"},
-				{"<leader>f", group = "[f]iddle"},
+				{ "<leader>c", group = "[C]ode" },
+				{ "<leader>d", group = "[D]ocument" },
+				{ "<leader>g", group = "[G]it" },
+				{ "<leader>h", group = "More git" },
+				{ "<leader>r", group = "[R]ename" },
+				{ "<leader>s", group = "[S]earch" },
+				{ "<leader>w", group = "[W]orkspace" },
+				{ "<leader>k", group = "[K]ill" },
+				{ "<leader>f", group = "[f]iddle" },
 			})
-	end},
+		end,
+	},
 	{
 		"lewis6991/gitsigns.nvim",
 		opts = {
@@ -195,7 +200,7 @@ require("lazy").setup({
 					variables = {},
 					-- Background styles. Can be "dark", "transparent" or "normal"
 					sidebars = "dark", -- style for sidebars, see below
-					floats = "dark",  -- style for floating windows
+					floats = "dark", -- style for floating windows
 				},
 				sidebars = { "qf", "help" }, -- Set a darker background on sidebar-like windows. For example: `["qf", "vista_kind", "terminal", "packer"]`
 				day_brightness = 0.3, -- Adjusts the brightness of the colors of the **Day** style. Number between 0 and 1, from dull to vibrant colors
@@ -681,18 +686,14 @@ local telescope_on_attach = function(_, bufnr)
 	end, "[W]orkspace [L]ist Folders")
 	vim.keymap.set("v", ",cf", vim.lsp.buf.format, { desc = "Format with LSP" })
 
--- vim.api.nvim_buf_create_user_command(bufnr, "LspFormat", function(_)
--- 	vim.lsp.buf.format()
--- end, { desc = "Format current buffer with LSP" })
+	-- vim.api.nvim_buf_create_user_command(bufnr, "LspFormat", function(_)
+	-- 	vim.lsp.buf.format()
+	-- end, { desc = "Format current buffer with LSP" })
 end
-
-
 
 -- mason-lspconfig requires that these setup functions are called in this order
 -- before setting up the servers.
 require("mason").setup()
-require("mason-lspconfig").setup()
-require("mason-conform").setup()
 
 -- Enable the following language servers
 --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
@@ -714,17 +715,10 @@ local servers = {
 		},
 	},
 	-- gopls = {},
-	sqlls = {
-		filetypes = { "sql" },
-	},
-	bashls = { filetypes = { "bash", "sh" } },
-	-- rust_analyzer = {
-	--   filetypes = {
-	--     'rust',
-	--   },
+	-- sqlls = {
+	-- 	filetypes = { "sql" },
 	-- },
-	-- tsserver = {},
-	-- html = { filetypes = { 'html', 'twig', 'hbs'} },
+	bashls = { filetypes = { "bash", "sh" } },
 
 	lua_ls = {
 		Lua = {
@@ -737,14 +731,6 @@ local servers = {
 	},
 }
 
--- Setup neovim lua configuration
--- require('neodev').setup()
-
--- nvim-cmp supports additional completion capabilities, so broadcast that to servers
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
-
--- Ensure the servers above are installed
 local mason_lspconfig = require("mason-lspconfig")
 
 mason_lspconfig.setup({
@@ -760,7 +746,6 @@ mason_lspconfig.setup_handlers({
 			filetypes = (servers[server_name] or {}).filetypes,
 		})
 	end,
-	["rust_analyzer"] = function() end,
 	["clangd"] = function()
 		require("lspconfig").clangd.setup({
 			-- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes
@@ -801,6 +786,17 @@ mason_lspconfig.setup_handlers({
 	--   require('lspconfig').pyright.setup{}
 	-- end
 })
+require("mason-conform").setup()
+
+
+-- Setup neovim lua configuration
+-- require('neodev').setup()
+
+-- nvim-cmp supports additional completion capabilities, so broadcast that to servers
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
+
+-- Ensure the servers above are installed
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
@@ -973,6 +969,10 @@ vim.g.rustaceanvim = {
 		-- 	-- LSP config
 		-- 	["rust-analyzer"] = {},
 		-- },
+		default_settings = {
+			['rust-analyzer'] = {
+			}
+		}
 	},
 	-- DAP configuration
 	dap = {},

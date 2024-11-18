@@ -37,6 +37,7 @@ require("lazy").setup({
 	},
 	{
 		"williamboman/mason.nvim",
+		lazy = false,
 		config = function()
 			require("mason").setup()
 		end
@@ -44,6 +45,7 @@ require("lazy").setup({
 	-- Please make sure conform is loaded AFTER mason
 	{
 		"stevearc/conform.nvim",
+		lazy = false,
 		config = function()
 			require("conform").setup({
 				formatters_by_ft = {
@@ -87,6 +89,7 @@ require("lazy").setup({
 	},
 	{
 		"williamboman/mason-lspconfig.nvim",
+		lazy = false,
 		dependencies = {
 			"williamboman/mason.nvim",
 		},

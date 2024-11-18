@@ -35,7 +35,13 @@ require("lazy").setup({
 		version = "^4",
 		lazy = false,
 	},
-	"williamboman/mason.nvim",
+	{
+		"williamboman/mason.nvim",
+		config = function()
+			require("mason").setup()
+		end
+	},
+	-- Please make sure conform is loaded AFTER mason
 	{
 		"stevearc/conform.nvim",
 		config = function()
@@ -79,7 +85,112 @@ require("lazy").setup({
 			end, { range = true })
 		end,
 	},
-	"zapling/mason-conform.nvim",
+	{
+		"williamboman/mason-lspconfig.nvim",
+		dependencies = {
+			"williamboman/mason.nvim",
+		},
+		config = function()
+			-- Enable the following language servers
+			--  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
+			--
+			--  Add any additional override configuration in the following tables. They will be passed to
+			--  the `settings` field of the server config. You must look up that documentation yourself.
+			--
+			--  If you want to override the default filetypes that your language server will attach to you can
+			--  define the property 'filetypes' to the map in question.
+			local servers = {
+				clangd = {
+					filetypes = {
+						"c",
+						"cpp",
+						"objc",
+						"objcpp",
+						"cuda",
+						"proto",
+					},
+				},
+				-- gopls = {},
+				-- sqlls = {
+				-- 	filetypes = { "sql" },
+				-- },
+				bashls = { filetypes = { "bash", "sh" } },
+
+				lua_ls = {
+					Lua = {
+						workspace = { checkThirdParty = false },
+						telemetry = { enable = false },
+					},
+				},
+				pyright = {
+					filetypes = { "python" },
+				},
+			}
+
+			local mason_lspconfig = require("mason-lspconfig")
+
+			mason_lspconfig.setup({
+				ensure_installed = vim.tbl_keys(servers),
+			})
+
+			mason_lspconfig.setup_handlers({
+				function(server_name)
+					require("lspconfig")[server_name].setup({
+						capabilities = capabilities,
+						on_attach = telescope_on_attach,
+						settings = servers[server_name],
+						filetypes = (servers[server_name] or {}).filetypes,
+					})
+				end,
+				["clangd"] = function()
+					require("lspconfig").clangd.setup({
+						-- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes
+						-- I have to set it in a separate case
+						cmd = {
+							"clangd",
+							"--background-index",
+							"--completion-style=detailed",
+							"--header-insertion=iwyu",
+							"--all-scopes-completion",
+							"--header-insertion-decorators",
+							"--limit-references=0",
+							"--clang-tidy",
+							-- finding definitions when searching from header files, otherwise
+							--  you're stuck with no def until you actually open the source for the impl
+						},
+						-- capabilities = capabilities,
+						-- on_attach = on_attach,
+						-- settings = servers['clangd'],
+						-- filetypes = (servers['clangd'] or {}).filetypes,
+					})
+				end,
+				-- ['rust_analyzer'] = function()
+				--   -- Old Config, rust-tools is DEAD
+				--   -- require("rust-tools").setup{}
+				--   -- require('lspconfig').rust_analyzer.setup {
+				--   --   rustfmt = {
+				--   --     rangeFormatting = {
+				--   --       enable = true,
+				--   --     },
+				--   --   },
+				--     -- capabilities = capabilities,
+				--     -- on_attach = on_attach,
+				--     -- filetypes = (servers['rust_analyzer'] or {}).filetypes,
+				--   -- }
+				-- end,
+				-- ['pyright'] = function()
+				--   require('lspconfig').pyright.setup{}
+				-- end
+			})
+		end,
+	},
+	-- Please make sure mason-conform is loaded AFTER mason and conform
+	{
+		"zapling/mason-conform.nvim",
+		config = function()
+			require("mason-conform").setup()
+		end
+	},
 	"mfussenegger/nvim-lint",
 	{
 		"neovim/nvim-lspconfig",
@@ -104,7 +215,7 @@ require("lazy").setup({
 		config = function()
 			require("mason-nvim-lint").setup({
 				ensure_installed = {
-					"shellcheck"
+					"shellcheck",
 				},
 				automatic_installation = false,
 				quiet_mode = false,
@@ -691,104 +802,6 @@ local telescope_on_attach = function(_, bufnr)
 	-- end, { desc = "Format current buffer with LSP" })
 end
 
--- mason-lspconfig requires that these setup functions are called in this order
--- before setting up the servers.
-require("mason").setup()
-
--- Enable the following language servers
---  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
---
---  Add any additional override configuration in the following tables. They will be passed to
---  the `settings` field of the server config. You must look up that documentation yourself.
---
---  If you want to override the default filetypes that your language server will attach to you can
---  define the property 'filetypes' to the map in question.
-local servers = {
-	clangd = {
-		filetypes = {
-			"c",
-			"cpp",
-			"objc",
-			"objcpp",
-			"cuda",
-			"proto",
-		},
-	},
-	-- gopls = {},
-	-- sqlls = {
-	-- 	filetypes = { "sql" },
-	-- },
-	bashls = { filetypes = { "bash", "sh" } },
-
-	lua_ls = {
-		Lua = {
-			workspace = { checkThirdParty = false },
-			telemetry = { enable = false },
-		},
-	},
-	pyright = {
-		filetypes = { "python" },
-	},
-}
-
-local mason_lspconfig = require("mason-lspconfig")
-
-mason_lspconfig.setup({
-	ensure_installed = vim.tbl_keys(servers),
-})
-
-mason_lspconfig.setup_handlers({
-	function(server_name)
-		require("lspconfig")[server_name].setup({
-			capabilities = capabilities,
-			on_attach = telescope_on_attach,
-			settings = servers[server_name],
-			filetypes = (servers[server_name] or {}).filetypes,
-		})
-	end,
-	["clangd"] = function()
-		require("lspconfig").clangd.setup({
-			-- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes
-			-- I have to set it in a separate case
-			cmd = {
-				"clangd",
-				"--background-index",
-				"--completion-style=detailed",
-				"--header-insertion=iwyu",
-				"--all-scopes-completion",
-				"--header-insertion-decorators",
-				"--limit-references=0",
-				"--clang-tidy",
-				-- finding definitions when searching from header files, otherwise
-				--  you're stuck with no def until you actually open the source for the impl
-			},
-			-- capabilities = capabilities,
-			-- on_attach = on_attach,
-			-- settings = servers['clangd'],
-			-- filetypes = (servers['clangd'] or {}).filetypes,
-		})
-	end,
-	-- ['rust_analyzer'] = function()
-	--   -- Old Config, rust-tools is DEAD
-	--   -- require("rust-tools").setup{}
-	--   -- require('lspconfig').rust_analyzer.setup {
-	--   --   rustfmt = {
-	--   --     rangeFormatting = {
-	--   --       enable = true,
-	--   --     },
-	--   --   },
-	--     -- capabilities = capabilities,
-	--     -- on_attach = on_attach,
-	--     -- filetypes = (servers['rust_analyzer'] or {}).filetypes,
-	--   -- }
-	-- end,
-	-- ['pyright'] = function()
-	--   require('lspconfig').pyright.setup{}
-	-- end
-})
-require("mason-conform").setup()
-
-
 -- Setup neovim lua configuration
 -- require('neodev').setup()
 
@@ -970,9 +983,8 @@ vim.g.rustaceanvim = {
 		-- 	["rust-analyzer"] = {},
 		-- },
 		default_settings = {
-			['rust-analyzer'] = {
-			}
-		}
+			["rust-analyzer"] = {},
+		},
 	},
 	-- DAP configuration
 	dap = {},

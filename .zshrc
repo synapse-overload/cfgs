@@ -158,3 +158,5 @@ if [[ -n "${WSL_DISTRO_NAME}" ]]; then
 	export QTWEBENGINE_DISABLE_SANDBOX=1
 	export QT_QPA_PLATFORM=wayland
 fi
+
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"

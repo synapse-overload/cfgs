@@ -93,99 +93,6 @@ require("lazy").setup({
 		dependencies = {
 			"williamboman/mason.nvim",
 		},
-		config = function()
-			-- Enable the following language servers
-			--  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
-			--
-			--  Add any additional override configuration in the following tables. They will be passed to
-			--  the `settings` field of the server config. You must look up that documentation yourself.
-			--
-			--  If you want to override the default filetypes that your language server will attach to you can
-			--  define the property 'filetypes' to the map in question.
-			local servers = {
-				clangd = {
-					filetypes = {
-						"c",
-						"cpp",
-						"objc",
-						"objcpp",
-						"cuda",
-						"proto",
-					},
-				},
-				-- gopls = {},
-				-- sqlls = {
-				-- 	filetypes = { "sql" },
-				-- },
-				bashls = { filetypes = { "bash", "sh" } },
-
-				lua_ls = {
-					Lua = {
-						workspace = { checkThirdParty = false },
-						telemetry = { enable = false },
-					},
-				},
-				pyright = {
-					filetypes = { "python" },
-				},
-			}
-
-			local mason_lspconfig = require("mason-lspconfig")
-
-			mason_lspconfig.setup({
-				ensure_installed = vim.tbl_keys(servers),
-			})
-
-			mason_lspconfig.setup_handlers({
-				function(server_name)
-					require("lspconfig")[server_name].setup({
-						capabilities = capabilities,
-						on_attach = telescope_on_attach,
-						settings = servers[server_name],
-						filetypes = (servers[server_name] or {}).filetypes,
-					})
-				end,
-				["clangd"] = function()
-					require("lspconfig").clangd.setup({
-						-- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes
-						-- I have to set it in a separate case
-						cmd = {
-							"clangd",
-							"--background-index",
-							"--completion-style=detailed",
-							"--header-insertion=iwyu",
-							"--all-scopes-completion",
-							"--header-insertion-decorators",
-							"--limit-references=0",
-							"--clang-tidy",
-							-- finding definitions when searching from header files, otherwise
-							--  you're stuck with no def until you actually open the source for the impl
-						},
-						-- capabilities = capabilities,
-						-- on_attach = on_attach,
-						-- settings = servers['clangd'],
-						-- filetypes = (servers['clangd'] or {}).filetypes,
-					})
-				end,
-				-- ['rust_analyzer'] = function()
-				--   -- Old Config, rust-tools is DEAD
-				--   -- require("rust-tools").setup{}
-				--   -- require('lspconfig').rust_analyzer.setup {
-				--   --   rustfmt = {
-				--   --     rangeFormatting = {
-				--   --       enable = true,
-				--   --     },
-				--   --   },
-				--     -- capabilities = capabilities,
-				--     -- on_attach = on_attach,
-				--     -- filetypes = (servers['rust_analyzer'] or {}).filetypes,
-				--   -- }
-				-- end,
-				-- ['pyright'] = function()
-				--   require('lspconfig').pyright.setup{}
-				-- end
-			})
-		end,
 	},
 	-- Please make sure mason-conform is loaded AFTER mason and conform
 	{
@@ -325,13 +232,13 @@ require("lazy").setup({
 				--  You can override specific color groups to use other groups or a hex color
 				--  function will be called with a ColorScheme table
 				-- @param colors ColorScheme
-				on_colors = function(colors) end,
+				on_colors = function() end,
 
 				--  You can override specific highlights to use other groups or a hex color
 				--  function will be called with a Highlights and ColorScheme table
 				-- @param highlights Highlights
 				-- @param colors ColorScheme
-				on_highlights = function(highlights, colors)
+				on_highlights = function(highlights, _)
 					highlights.debugPC = { bg = "#103545" }
 				end,
 			})
@@ -407,7 +314,7 @@ require("lazy").setup({
 					palette = {},
 					theme = { wave = {}, lotus = {}, dragon = {}, all = {} },
 				},
-				overrides = function(colors) -- add/modify highlights
+				overrides = function(_) -- add/modify highlights
 					return {}
 				end,
 				theme = "wave", -- Load "wave" theme when 'background' option is not set
@@ -488,7 +395,7 @@ require("lazy").setup({
 		"theHamsta/nvim-dap-virtual-text",
 		event = "VeryLazy",
 		config = function()
-			require("nvim-dap-virtual-text").setup()
+			require("nvim-dap-virtual-text").setup({})
 		end,
 	},
 	{
@@ -653,7 +560,7 @@ vim.keymap.set("n", "<leader>sr", require("telescope.builtin").resume, { desc = 
 vim.keymap.set("n", "<leader>kd", vim.diagnostic.hide, { desc = "[K]ill diagnostics" })
 vim.keymap.set("n", "<leader>ks", vim.diagnostic.show, { desc = "[K]ill diagnostics stop" })
 vim.keymap.set("n", "<leader>ke", vim.diagnostic.enable, { desc = "[K]ill diagnostics forever disable" })
-vim.keymap.set("n", "<leader>kf", vim.diagnostic.disable, { desc = "[K]ill diagnostics forever" })
+vim.keymap.set("n", "<leader>kf", function() vim.diagnostic.enable(false) end, { desc = "[K]ill diagnostics forever" })
 vim.keymap.set("n", ",q", ":Bclose <CR>", { desc = "[B]uffer del" })
 vim.keymap.set("n", ",l", ":bnext <CR>", { desc = "[B]uffer next" })
 vim.keymap.set("n", ",h", ":bprev<CR>", { desc = "[B]uffer previous" })
@@ -808,9 +715,6 @@ end
 -- Setup neovim lua configuration
 -- require('neodev').setup()
 
--- nvim-cmp supports additional completion capabilities, so broadcast that to servers
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
 
 -- Ensure the servers above are installed
 
@@ -926,6 +830,111 @@ cmp.setup({
 --     -- ...,
 --   }
 -- }
+-- ---------------------Mason-lspconfig--------------------------------------------------
+-- This needs to be executed AFTER nvim-cmp setup
+-- Enable the following language servers
+--  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
+--
+--  Add any additional override configuration in the following tables. They will be passed to
+--  the `settings` field of the server config. You must look up that documentation yourself.
+--
+--  If you want to override the default filetypes that your language server will attach to you can
+--  define the property 'filetypes' to the map in question.
+local servers = {
+	clangd = {
+		filetypes = {
+			"h",
+			"hxx",
+			"hh",
+			"c",
+			"cpp",
+			"objc",
+			"objcpp",
+			"cuda",
+			"proto",
+		},
+	},
+	-- gopls = {},
+	-- sqlls = {
+	-- 	filetypes = { "sql" },
+	-- },
+	bashls = { filetypes = { "bash", "sh" } },
+
+	lua_ls = {
+		Lua = {
+			workspace = { checkThirdParty = false },
+			telemetry = { enable = false },
+		},
+	},
+	pyright = {
+		filetypes = { "python" },
+	},
+}
+
+local mason_lspconfig = require("mason-lspconfig")
+
+mason_lspconfig.setup({
+	ensure_installed = vim.tbl_keys(servers),
+})
+
+-- nvim-cmp supports additional completion capabilities, so broadcast that to servers
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
+
+
+-- PLEASE remember to set the capabilities, on_attach functon, settings and filetypes by hand for each
+-- specific handler you specialize here, take clangd as an example
+mason_lspconfig.setup_handlers({
+	function(server_name)
+		require("lspconfig")[server_name].setup({
+			capabilities = capabilities,
+			on_attach = telescope_on_attach,
+			settings = servers[server_name],
+			filetypes = (servers[server_name] or {}).filetypes,
+		})
+	end,
+	["clangd"] = function()
+		require("lspconfig").clangd.setup({
+			-- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes
+			-- I have to set it in a separate case
+			cmd = {
+				"clangd",
+				"--background-index",
+				"--completion-style=detailed",
+				"--header-insertion=iwyu",
+				"--all-scopes-completion",
+				"--header-insertion-decorators",
+				"--limit-references=0",
+				"--clang-tidy",
+				-- finding definitions when searching from header files, otherwise
+				--  you're stuck with no def until you actually open the source for the impl
+			},
+			capabilities = capabilities,
+			on_attach = telescope_on_attach,
+			settings = servers['clangd'],
+			filetypes = (servers['clangd'] or {}).filetypes,
+		})
+	end,
+	-- ['rust_analyzer'] = function()
+	--   -- Old Config, rust-tools is DEAD
+	--   -- require("rust-tools").setup{}
+	--   -- require('lspconfig').rust_analyzer.setup {
+	--   --   rustfmt = {
+	--   --     rangeFormatting = {
+	--   --       enable = true,
+	--   --     },
+	--   --   },
+	--     -- capabilities = capabilities,
+	--     -- on_attach = on_attach,
+	--     -- filetypes = (servers['rust_analyzer'] or {}).filetypes,
+	--   -- }
+	-- end,
+	-- ['pyright'] = function()
+	--   require('lspconfig').pyright.setup{}
+	-- end
+})
+
+
 vim.keymap.set("n", "<F5>", function()
 	require("dap").continue()
 end)
@@ -962,7 +971,7 @@ end, { desc = "[g]rep params" })
 
 if vim.lsp.inlay_hint then
 	vim.keymap.set("n", "<leader>uh", function()
-		vim.lsp.inlay_hint.enable(0, not vim.lsp.inlay_hint.is_enabled(0))
+        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
 	end, { desc = "Toggle Inlay Hints" })
 end
 

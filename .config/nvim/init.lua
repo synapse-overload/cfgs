@@ -37,10 +37,10 @@ require("lazy").setup({
 	},
 	{
 		"williamboman/mason.nvim",
-		lazy = false,
 		config = function()
-			require("mason").setup()
-		end
+			require("mason").setup({})
+		end,
+		lazy = false,
 	},
 	-- Please make sure conform is loaded AFTER mason
 	{
@@ -99,7 +99,7 @@ require("lazy").setup({
 		"zapling/mason-conform.nvim",
 		config = function()
 			require("mason-conform").setup()
-		end
+		end,
 	},
 	"mfussenegger/nvim-lint",
 	{
@@ -370,7 +370,6 @@ require("lazy").setup({
 	},
 	{
 		"nvim-telescope/telescope.nvim",
-		branch = "0.1.x",
 		dependencies = {
 			"nvim-lua/plenary.nvim",
 			"nvim-telescope/telescope-live-grep-args.nvim",
@@ -452,7 +451,7 @@ vim.o.hlsearch = true
 vim.wo.number = true
 
 -- Enable mouse mode
-vim.o.mouse = "a"
+vim.o.mouse = ""
 
 -- tab stuff
 vim.o.tabstop = 4
@@ -560,7 +559,9 @@ vim.keymap.set("n", "<leader>sr", require("telescope.builtin").resume, { desc = 
 vim.keymap.set("n", "<leader>kd", vim.diagnostic.hide, { desc = "[K]ill diagnostics" })
 vim.keymap.set("n", "<leader>ks", vim.diagnostic.show, { desc = "[K]ill diagnostics stop" })
 vim.keymap.set("n", "<leader>ke", vim.diagnostic.enable, { desc = "[K]ill diagnostics forever disable" })
-vim.keymap.set("n", "<leader>kf", function() vim.diagnostic.enable(false) end, { desc = "[K]ill diagnostics forever" })
+vim.keymap.set("n", "<leader>kf", function()
+	vim.diagnostic.enable(false)
+end, { desc = "[K]ill diagnostics forever" })
 vim.keymap.set("n", ",q", ":Bclose <CR>", { desc = "[B]uffer del" })
 vim.keymap.set("n", ",l", ":bnext <CR>", { desc = "[B]uffer next" })
 vim.keymap.set("n", ",h", ":bprev<CR>", { desc = "[B]uffer previous" })
@@ -658,7 +659,8 @@ vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagn
 
 -- [[ Configure LSP ]]
 --  This function gets run when an LSP connects to a particular buffer.
-local telescope_on_attach = function(_, bufnr)
+local telescope_on_attach = function(client, bufnr)
+	-- vim.print("LSP attached! Client:", client.name, "Buffer:", bufnr)
 	local nmap = function(keys, func, desc)
 		if desc then
 			desc = "LSP: " .. desc
@@ -703,18 +705,18 @@ local telescope_on_attach = function(_, bufnr)
 	nmap("<leader>wa", vim.lsp.buf.add_workspace_folder, "[W]orkspace [A]dd Folder")
 	nmap("<leader>wr", vim.lsp.buf.remove_workspace_folder, "[W]orkspace [R]emove Folder")
 	nmap("<leader>wl", function()
-		print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+		vim.print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 	end, "[W]orkspace [L]ist Folders")
 	vim.keymap.set("v", ",cf", vim.lsp.buf.format, { desc = "Format with LSP" })
 
 	-- vim.api.nvim_buf_create_user_command(bufnr, "LspFormat", function(_)
 	-- 	vim.lsp.buf.format()
 	-- end, { desc = "Format current buffer with LSP" })
+	-- vim.print("LSP keymaps setup complete for buffer", bufnr)
 end
 
 -- Setup neovim lua configuration
 -- require('neodev').setup()
-
 
 -- Ensure the servers above are installed
 
@@ -837,103 +839,129 @@ cmp.setup({
 --
 --  Add any additional override configuration in the following tables. They will be passed to
 --  the `settings` field of the server config. You must look up that documentation yourself.
---
---  If you want to override the default filetypes that your language server will attach to you can
---  define the property 'filetypes' to the map in question.
-local servers = {
-	clangd = {
-		filetypes = {
-			"h",
-			"hxx",
-			"hh",
-			"c",
-			"cpp",
-			"objc",
-			"objcpp",
-			"cuda",
-			"proto",
-		},
-	},
-	-- gopls = {},
-	-- sqlls = {
-	-- 	filetypes = { "sql" },
-	-- },
-	bashls = { filetypes = { "bash", "sh" } },
-
-	lua_ls = {
-		Lua = {
-			workspace = { checkThirdParty = false },
-			telemetry = { enable = false },
-		},
-	},
-	pyright = {
-		filetypes = { "python" },
-	},
-}
-
-local mason_lspconfig = require("mason-lspconfig")
-
-mason_lspconfig.setup({
-	ensure_installed = vim.tbl_keys(servers),
-})
 
 -- nvim-cmp supports additional completion capabilities, so broadcast that to servers
+-- Remove the telescope_on_attach function and the vim.lsp.config("*", {...}) call
+-- Replace with this LspAttach autocommand
+
+-- LSP Attachment and Keybindings
+vim.api.nvim_create_autocmd('LspAttach', {
+  desc = 'LSP actions and keybindings',
+  callback = function(event)
+    local bufnr = event.buf
+    local client = vim.lsp.get_client_by_id(event.data.client_id)
+    
+    -- vim.print("LSP attached! Client:", client.name, "Buffer:", bufnr)
+    
+    local nmap = function(keys, func, desc)
+      if desc then
+        desc = "LSP: " .. desc
+      end
+      vim.keymap.set("n", keys, func, { buffer = bufnr, desc = desc })
+    end
+
+    nmap("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
+    nmap("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction")
+    nmap("gd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
+    nmap("gr", require("telescope.builtin").lsp_references, "[G]oto [R]eferences")
+    nmap("gI", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
+    nmap("<leader>D", require("telescope.builtin").lsp_type_definitions, "Type [D]efinition")
+    nmap("<leader>ds", require("telescope.builtin").lsp_document_symbols, "[D]ocument [S]ymbols")
+    nmap("<leader>ws", require("telescope.builtin").lsp_dynamic_workspace_symbols, "[W]orkspace [S]ymbols")
+    nmap("K", vim.lsp.buf.hover, "Hover Documentation")
+    nmap("<C-k>", vim.lsp.buf.signature_help, "Signature Documentation")
+    nmap("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
+    nmap("<leader>wa", vim.lsp.buf.add_workspace_folder, "[W]orkspace [A]dd Folder")
+    nmap("<leader>wr", vim.lsp.buf.remove_workspace_folder, "[W]orkspace [R]emove Folder")
+    nmap("<leader>wl", function()
+      vim.print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+    end, "[W]orkspace [L]ist Folders")
+    
+    vim.keymap.set("v", ",cf", vim.lsp.buf.format, { buffer = bufnr, desc = "Format with LSP" })
+    
+    -- vim.print("LSP keymaps setup complete for buffer", bufnr, "with client", client.name)
+  end,
+})
+
+-- Your server configuration (keep this part)
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities = require("cmp_nvim_lsp").default_capabilities(capabilities)
 
+local servers = {
+  "bashls",
+  "lua_ls",
+  "pyright",
+  "clangd",
+}
 
--- PLEASE remember to set the capabilities, on_attach functon, settings and filetypes by hand for each
--- specific handler you specialize here, take clangd as an example
-mason_lspconfig.setup_handlers({
-	function(server_name)
-		require("lspconfig")[server_name].setup({
-			capabilities = capabilities,
-			on_attach = telescope_on_attach,
-			settings = servers[server_name],
-			filetypes = (servers[server_name] or {}).filetypes,
-		})
-	end,
-	["clangd"] = function()
-		require("lspconfig").clangd.setup({
-			-- since cmd is a setting outisde of capabilities, on_attach, settings and filetypes
-			-- I have to set it in a separate case
-			cmd = {
-				"clangd",
-				"--background-index",
-				"--completion-style=detailed",
-				"--header-insertion=iwyu",
-				"--all-scopes-completion",
-				"--header-insertion-decorators",
-				"--limit-references=0",
-				"--clang-tidy",
-				-- finding definitions when searching from header files, otherwise
-				--  you're stuck with no def until you actually open the source for the impl
-			},
-			capabilities = capabilities,
-			on_attach = telescope_on_attach,
-			settings = servers['clangd'],
-			filetypes = (servers['clangd'] or {}).filetypes,
-		})
-	end,
-	-- ['rust_analyzer'] = function()
-	--   -- Old Config, rust-tools is DEAD
-	--   -- require("rust-tools").setup{}
-	--   -- require('lspconfig').rust_analyzer.setup {
-	--   --   rustfmt = {
-	--   --     rangeFormatting = {
-	--   --       enable = true,
-	--   --     },
-	--   --   },
-	--     -- capabilities = capabilities,
-	--     -- on_attach = on_attach,
-	--     -- filetypes = (servers['rust_analyzer'] or {}).filetypes,
-	--   -- }
-	-- end,
-	-- ['pyright'] = function()
-	--   require('lspconfig').pyright.setup{}
-	-- end
-})
+local server_configs = {
+  lua_ls = {
+    settings = {
+      Lua = {
+        diagnostics = { globals = { "vim" } },
+        workspace = {
+          library = vim.api.nvim_get_runtime_file("", true),
+          checkThirdParty = false,
+        },
+      },
+    },
+  },
+  
+  pyright = {
+    settings = {
+      python = {
+        analysis = {
+          typeCheckingMode = "basic",
+          autoSearchPaths = true,
+          useLibraryCodeForTypes = true,
+        },
+      },
+    },
+  },
+  
+  clangd = {
+    filetypes = {
+      "h", "hxx", "hh", "c", "cpp", "objc", "objcpp", "cuda", "proto",
+    },
+    cmd = {
+      "clangd",
+      "--background-index",
+      "--completion-style=detailed",
+      "--header-insertion=iwyu",
+      "--all-scopes-completion",
+      "--header-insertion-decorators",
+      "--limit-references=0",
+      "--clang-tidy",
+      "--query-driver=/usr/bin/gcc",
+    },
+  },
+}
 
+-- Setup Mason
+require("mason").setup({})
+
+-- Configure individual servers
+for server_name, config in pairs(server_configs) do
+  config.capabilities = capabilities
+  vim.lsp.config(server_name, config)
+end
+
+-- Enable all servers (remove the on_attach from global config)
+for server_name, _ in pairs(server_configs) do
+  vim.lsp.enable(server_name)
+end
+
+-------------------------------------
+-------------------------------------
+
+-- Enable the following language servers
+-------------------------------------
+------------------------------------
+--------------------------------------
+
+for server_name, _ in pairs(server_configs) do
+	vim.lsp.enable(server_name)
+end
 
 vim.keymap.set("n", "<F5>", function()
 	require("dap").continue()
@@ -971,7 +999,7 @@ end, { desc = "[g]rep params" })
 
 if vim.lsp.inlay_hint then
 	vim.keymap.set("n", "<leader>uh", function()
-        vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+		vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
 	end, { desc = "Toggle Inlay Hints" })
 end
 
